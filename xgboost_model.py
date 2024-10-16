@@ -1,23 +1,12 @@
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
 
 from prepare_data import prepare_resultant_df
-from setup import get_X_y_encoded
-
+from setup import get_train_test_X_y
 
 resultant_df = prepare_resultant_df()
 
-# prepare X & y (classification)
-X, y_encoded = get_X_y_encoded(resultant_df)
-
-# train and test split for X & y
-X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.3, random_state=42, stratify=y_encoded)
-
-print("Shape of X_train = ", X_train.shape)
-print("Shape of X_test = ", X_test.shape)
-print("Shape of y_train = ", y_train.shape)
-print("Shape of y_test = ", y_test.shape)
+X_train, X_test, y_train, y_test = get_train_test_X_y(resultant_df, test_size=0.3)
 
 # create XGBoost Classifier model and fit on the training data
 xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
