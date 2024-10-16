@@ -1,25 +1,14 @@
 import pandas as pd
-import glob
 import os
+from dotenv import load_dotenv
 
-from setup import base_folder
+from setup import fetch_data_from_subfolders
 
+
+load_dotenv()
 
 def prepare_historical_parking_df():
-    subfolders = [f.path for f in os.scandir(base_folder) if f.is_dir()]
-
-    # read csv in a dataframe and put all the DataFrames in a list
-    dfs = []
-    for subfolder in subfolders:
-        all_files = glob.glob(os.path.join(subfolder, '*.csv'))
-        all_files.sort(key=lambda x: os.path.basename(x))
-
-        for file in all_files:
-            df = pd.read_csv(file)
-            dfs.append(df)
-
-    # concat all the dataframes
-    historical_parking_df = pd.concat(dfs, ignore_index=True)
+    historical_parking_df = fetch_data_from_subfolders()
 
     # compute the occupied lots for each parking space
     historical_parking_df['occupied_lots'] = historical_parking_df['total_lots'] - historical_parking_df['available_lots']
@@ -32,7 +21,7 @@ def prepare_historical_parking_df():
 
 
 def prepare_parking_info_df(folder_path = None):
-    info_base_folder = folder_path if folder_path is not None else '/Users/harsh/Desktop/Pattern Recognition Systems/Project/Data/HDB'
+    info_base_folder = folder_path if folder_path is not None else os.getenv('PARKING_METADATA_BASE_FOLDER')
     parking_info_df = pd.read_csv(os.path.join(info_base_folder, 'HDBCarparkInformation.csv'))
 
     parking_info_df['car_park_type'] = pd.Categorical(parking_info_df['car_park_type']).codes
