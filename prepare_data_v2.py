@@ -4,10 +4,12 @@ from dotenv import load_dotenv
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 import os
 
-from setup import fetch_data_from_subfolders, numerical_features, categorical_features
+from setup import fetch_data_from_subfolders, categorical_features
 
 
 load_dotenv()
+
+numerical_features = ['total_lots', 'available_lots', 'x_coord', 'y_coord']
 
 def prepare_historical_parking_df_v2():
     historical_parking_df = fetch_data_from_subfolders()
@@ -19,8 +21,12 @@ def prepare_historical_parking_df_v2():
     historical_parking_df['month'] = historical_parking_df['update_timestamp'].dt.month
     historical_parking_df['day_of_week'] = historical_parking_df['update_timestamp'].dt.weekday
     historical_parking_df['hour'] = historical_parking_df['update_timestamp'].dt.hour
+    historical_parking_df['minute'] = historical_parking_df['update_timestamp'].dt.minute
 
     # create cyclic features from month, day_of_week, hour
+    historical_parking_df['sin_minute'] = np.sin(2 * np.pi * historical_parking_df['minute'] / 60)
+    historical_parking_df['cos_minute'] = np.cos(2 * np.pi * historical_parking_df['minute'] / 60)
+
     historical_parking_df['sin_hour'] = np.sin(2 * np.pi * historical_parking_df['hour'] / 24)
     historical_parking_df['cos_hour'] = np.cos(2 * np.pi * historical_parking_df['hour'] / 24)
 
@@ -32,7 +38,7 @@ def prepare_historical_parking_df_v2():
 
     # drop not required features
     historical_parking_df = historical_parking_df.drop(
-        columns=['fetch_timestamp', 'lot_type', 'update_timestamp', 'month', 'day_of_week', 'hour']
+        columns=['fetch_timestamp', 'lot_type', 'update_timestamp', 'month', 'day_of_week', 'hour', 'minute']
     )
 
     print("Historical parking data shape = ", historical_parking_df.shape)

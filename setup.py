@@ -9,7 +9,6 @@ load_dotenv()
 
 historical_parking_base_folder = os.getenv('PARKING_HISTORY_BASE_FOLDER')
 
-numerical_features = ['total_lots', 'available_lots', 'x_coord', 'y_coord']
 categorical_features = [
     'car_park_type',
     'type_of_parking_system',
