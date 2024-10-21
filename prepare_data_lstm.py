@@ -11,8 +11,6 @@ numerical_features = [
     'total_lots',
     'x_coord',
     'y_coord',
-    'sin_minute',
-    'cos_minute',
     'sin_hour',
     'cos_hour',
     'sin_day_of_week',
@@ -24,7 +22,7 @@ def prepare_resultant_df_v3(output_scalar):
     parking_info_df = prepare_parking_info_df_v2()
 
     # fetch prepared car parking data (historical)
-    historical_parking_df = prepare_historical_parking_df_v2()
+    historical_parking_df = prepare_historical_parking_df_v2(use_mean_sampling=True)
     historical_parking_df = historical_parking_df.drop(columns=['sin_month', 'cos_month'])
 
     # get a smaller set of historical parking dataframe to work upon
