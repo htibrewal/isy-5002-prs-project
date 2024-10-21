@@ -1,6 +1,8 @@
 .idea/
 __pycache__/
+.venv/
 
 .env
-playbook.ipynb
 *.png
+
+playbook.ipynb
