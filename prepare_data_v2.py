@@ -105,6 +105,10 @@ def prepare_parking_info_df_v2(folder_path = None):
     encoder = OneHotEncoder()
     encoded_features = pd.DataFrame(encoder.fit_transform(parking_info_df[categorical_features]).toarray(),
             columns=encoder.get_feature_names_out())
+
+    # for old version of encoder that is running on remote
+    # encoded_features = pd.DataFrame(encoder.fit_transform(parking_info_df[categorical_features]).toarray(), columns=encoder.get_feature_names())
+
     parking_info_df = parking_info_df.drop(columns=categorical_features).reset_index(drop=True)
 
     print("Car park static info shape = ", parking_info_df.shape)
