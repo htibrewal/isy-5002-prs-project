@@ -9,6 +9,7 @@ from setup import fetch_data_from_subfolders, numerical_features, categorical_fe
 
 load_dotenv()
 
+# function to convert the date and time features into cyclic with the help of sin and cos
 def replace_timestamp_with_cyclic_features(target_df, timestamp_key):
     # feature engineering - updated timestamp
     target_df[timestamp_key] = pd.to_datetime(target_df[timestamp_key])
@@ -29,7 +30,8 @@ def replace_timestamp_with_cyclic_features(target_df, timestamp_key):
 
     return target_df.drop(columns = [timestamp_key, 'month', 'day_of_week', 'hour'])
 
-
+# function to sample every car_park_number by 30 mins frequency
+# for available_lots and apply mean when sampling
 def get_timestamp_mean_sampled_df(target_df, timestamp_key):
     target_df[timestamp_key] = pd.to_datetime(target_df[timestamp_key])
     target_df.set_index(timestamp_key, inplace=True)
@@ -41,14 +43,35 @@ def get_timestamp_mean_sampled_df(target_df, timestamp_key):
                          .reset_index())
     return target_reduced_df.dropna()
 
+# function to retain the data points closest to every half an hour
+# and the logic is to check 5 mins before and after the half an hour mark
+def get_timestamp_filtered_df(target_df, timestamp_key):
+    ts_rounded_key = 'timestamp_rounded'
 
-def prepare_historical_parking_df_v2(use_mean_sampling = False):
+    target_df[timestamp_key] = pd.to_datetime(target_df[timestamp_key])
+    target_df[ts_rounded_key] = target_df[timestamp_key].dt.round('30T')
+
+    target_df_filtered = target_df[
+        (target_df[timestamp_key] >= target_df[ts_rounded_key] - pd.Timedelta(minutes=5)) &
+        (target_df[timestamp_key] <= target_df[ts_rounded_key] + pd.Timedelta(minutes=5))
+    ]
+
+    target_df_reduced = target_df_filtered.groupby(['car_park_number', ts_rounded_key]).first().reset_index()
+
+    return target_df_reduced.drop(columns = [ts_rounded_key])
+
+
+# please ensure that only one of the flags is True at one time
+def prepare_historical_parking_df_v2(use_mean_sampling = False, use_time_difference = False):
     historical_parking_df = fetch_data_from_subfolders()
 
     # drop not required features
     historical_parking_df = historical_parking_df.drop(columns=['fetch_timestamp', 'lot_type'])
 
-    if use_mean_sampling:
+    if use_time_difference:
+        historical_parking_df = get_timestamp_filtered_df(historical_parking_df, 'update_timestamp')
+
+    elif use_mean_sampling:
         parking_lot_capacity_df = historical_parking_df.drop(columns=['available_lots', 'update_timestamp'])
         parking_lot_capacity_df = parking_lot_capacity_df.groupby('car_park_number')['total_lots'].last().reset_index()
 
@@ -66,7 +89,7 @@ def prepare_historical_parking_df_v2(use_mean_sampling = False):
     print("Historical parking data top 5")
     print(historical_parking_df.head())
 
-    return historical_parking_df
+    return historical_parking_df.sort_values(by=['update_timestamp', 'car_park_number'])
 
 
 def prepare_parking_info_df_v2(folder_path = None):
@@ -89,24 +112,24 @@ def prepare_parking_info_df_v2(folder_path = None):
     return pd.concat([parking_info_df, encoded_features], axis=1)
 
 
-def prepare_resultant_df_v2(use_mean_sampling = False):
+def prepare_resultant_df_v2(use_mean_sampling = False, use_time_difference = False):
     # fetch prepared car lot info (static)
     parking_info_df = prepare_parking_info_df_v2()
 
     # fetch prepared car parking data (historical)
-    historical_parking_df = prepare_historical_parking_df_v2(use_mean_sampling)
+    historical_parking_df = prepare_historical_parking_df_v2(use_mean_sampling, use_time_difference)
 
     # prepare a resultant DataFrame
-    resultant_df = pd.merge(historical_parking_df, parking_info_df, on='car_park_number', how='inner')
+    merged_df = pd.merge(historical_parking_df, parking_info_df, on='car_park_number', how='inner')
 
     scaler = MinMaxScaler()
-    resultant_df[numerical_features] = scaler.fit_transform(resultant_df[numerical_features])
+    merged_df[numerical_features] = scaler.fit_transform(merged_df[numerical_features])
 
-    print("Resultant dataframe shape = ", resultant_df.shape)
+    print("Resultant dataframe shape = ", merged_df.shape)
     print("Resultant dataframe top 5")
-    print(resultant_df.head())
+    print(merged_df.head())
 
-    return resultant_df
+    return merged_df
 
 
 if __name__ == '__main__':
