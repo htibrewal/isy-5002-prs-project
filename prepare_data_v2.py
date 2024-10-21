@@ -89,7 +89,7 @@ def prepare_historical_parking_df_v2(use_mean_sampling = False, use_time_differe
     print("Historical parking data top 5")
     print(historical_parking_df.head())
 
-    return historical_parking_df.sort_values(by=['update_timestamp', 'car_park_number'])
+    return historical_parking_df
 
 
 def prepare_parking_info_df_v2(folder_path = None):

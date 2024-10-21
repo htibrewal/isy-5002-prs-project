@@ -4,8 +4,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from prepare_data_v2 import prepare_resultant_df_v2
 from setup import get_train_test_X_y
 
-resultant_data = prepare_resultant_df_v2(True)
-# resultant_data = resultant_data[:100000]
+resultant_data = prepare_resultant_df_v2(use_mean_sampling=True)
+resultant_data = resultant_data[:100000]
 
 X_train, X_test, y_train, y_test = get_train_test_X_y(resultant_data, test_size=0.3)
 
