@@ -3,9 +3,11 @@ import numpy as np
 import seaborn as sns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 from keras.api.models import Sequential
 from keras.api.layers import LSTM, Dense
-from sklearn.preprocessing import MinMaxScaler
+
+# import tensorflow as tf
 
 from prepare_data_lstm import prepare_resultant_df_v3, create_sequences
 
@@ -34,6 +36,11 @@ model = Sequential()
 model.add(LSTM(64, activation='relu', input_shape=(X_train.shape[1], X_train.shape[2])))
 model.add(Dense(16, activation='relu'))
 model.add(Dense(1))  # Predicting available spaces
+
+# model = tf.keras.Sequential()
+# model.add(tf.keras.layers.LSTM(64, activation='relu', input_shape=(X_train.shape[1], X_train.shape[2])))
+# model.add(tf.keras.layers.Dense(16, activation='relu'))
+# model.add(tf.keras.layers.Dense(1))  # Predicting available spaces
 
 model.compile(optimizer='adam', loss='mse')
 
