@@ -41,7 +41,7 @@ def get_train_test_X_y(resultant_df, target=None, test_size=0.2):
     X, y_encoded = get_X_y_encoded(resultant_df, target)
 
     # train and test split for X & y
-    X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=test_size, random_state=42, stratify=y_encoded)
+    X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=test_size, random_state=42)
 
     print("Shape of X_train = ", X_train.shape)
     print("Shape of X_test = ", X_test.shape)
