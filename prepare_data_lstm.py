@@ -7,20 +7,16 @@ from prepare_data_v2 import prepare_parking_info_df_v2, prepare_historical_parki
 
 load_dotenv()
 
+static_numerical_features = ['total_lots', 'x_coord', 'y_coord',]
+
 numerical_features = [
-    'total_lots',
-    'x_coord',
-    'y_coord',
     'sin_hour',
     'cos_hour',
     'sin_day_of_week',
     'cos_day_of_week'
 ]
 
-def prepare_resultant_df_v3(output_scalar):
-    # fetch prepared car lot info (static)
-    parking_info_df = prepare_parking_info_df_v2()
-
+def prepare_resultant_df_v3(output_scalar, use_static_features=True):
     # fetch prepared car parking data (historical)
     historical_parking_df = prepare_historical_parking_df_v2(use_mean_sampling=True)
     historical_parking_df = historical_parking_df.drop(columns=['sin_month', 'cos_month'])
@@ -29,7 +25,17 @@ def prepare_resultant_df_v3(output_scalar):
     historical_parking_df = historical_parking_df[:100000]
 
     # prepare a resultant DataFrame
-    resultant_df = pd.merge(historical_parking_df, parking_info_df, on='car_park_number', how='inner')
+    if use_static_features:
+        # fetch prepared car lot info (static)
+        parking_info_df = prepare_parking_info_df_v2()
+        resultant_df = pd.merge(historical_parking_df, parking_info_df, on='car_park_number', how='inner')
+
+        # also extend the numerical features list
+        # when using static features of parking lot
+        numerical_features.extend(static_numerical_features)
+    else:
+        resultant_df = historical_parking_df.drop(columns=['total_lots'])
+
 
     scaler = MinMaxScaler()
     resultant_df[numerical_features] = scaler.fit_transform(resultant_df[numerical_features])
