@@ -3,7 +3,7 @@ __pycache__/
 .venv/
 
 .env
-*.png
 *.pkl
 
-playbook.ipynb
+plots/
+playbooks/
