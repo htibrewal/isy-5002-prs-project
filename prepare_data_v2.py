@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 import os
 
 from setup import fetch_data_from_subfolders, numerical_features, categorical_features
@@ -92,7 +91,7 @@ def prepare_historical_parking_df_v2(use_mean_sampling = False, use_time_differe
     return historical_parking_df
 
 
-def prepare_parking_info_df_v2(folder_path = None):
+def prepare_parking_info_df_v2(categorical_encoder, folder_path = None):
     info_base_folder = folder_path if folder_path is not None else os.getenv('PARKING_METADATA_BASE_FOLDER')
     parking_info_df = pd.read_csv(os.path.join(info_base_folder, 'HDBCarparkInformation.csv'))
 
@@ -100,9 +99,10 @@ def prepare_parking_info_df_v2(folder_path = None):
            .drop(columns=['address', 'gantry_height'])
            .rename(columns={'car_park_no': 'car_park_number'}))
 
-    encoder = OneHotEncoder()
-    encoded_features = pd.DataFrame(encoder.fit_transform(parking_info_df[categorical_features]).toarray(),
-            columns=encoder.get_feature_names_out())
+    transformed_categorical_features = categorical_encoder.fit_transform(parking_info_df[categorical_features]).toarray()
+    print(transformed_categorical_features[:5])
+
+    encoded_features = pd.DataFrame(transformed_categorical_features, columns=categorical_encoder.get_feature_names_out())
     parking_info_df = parking_info_df.drop(columns=categorical_features).reset_index(drop=True)
 
     print("Car park static info shape = ", parking_info_df.shape)
@@ -112,9 +112,9 @@ def prepare_parking_info_df_v2(folder_path = None):
     return pd.concat([parking_info_df, encoded_features], axis=1)
 
 
-def prepare_resultant_df_v2(use_mean_sampling = False, use_time_difference = False):
+def prepare_resultant_df_v2(scaler, categorical_encoder, use_mean_sampling = False, use_time_difference = False):
     # fetch prepared car lot info (static)
-    parking_info_df = prepare_parking_info_df_v2()
+    parking_info_df = prepare_parking_info_df_v2(categorical_encoder)
 
     # fetch prepared car parking data (historical)
     historical_parking_df = prepare_historical_parking_df_v2(use_mean_sampling, use_time_difference)
@@ -122,7 +122,6 @@ def prepare_resultant_df_v2(use_mean_sampling = False, use_time_difference = Fal
     # prepare a resultant DataFrame
     merged_df = pd.merge(historical_parking_df, parking_info_df, on='car_park_number', how='inner')
 
-    scaler = MinMaxScaler()
     merged_df[numerical_features] = scaler.fit_transform(merged_df[numerical_features])
 
     print("Resultant dataframe shape = ", merged_df.shape)
@@ -132,5 +131,6 @@ def prepare_resultant_df_v2(use_mean_sampling = False, use_time_difference = Fal
     return merged_df
 
 
-if __name__ == '__main__':
-    print(prepare_resultant_df_v2())
+## TESTING - Prepare resultant data after pre-processing
+# if __name__ == '__main__':
+#     print(prepare_resultant_df_v2())

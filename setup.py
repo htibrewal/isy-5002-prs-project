@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler, OneHotEncoder, OrdinalEncoder
 
 load_dotenv()
 
@@ -36,9 +36,25 @@ def fetch_data_from_subfolders():
     return pd.concat(dfs, ignore_index=True)
 
 
-def get_train_test_X_y(resultant_df, target=None, test_size=0.2):
+def get_scaler_and_encoder(min_max_scaling=True, one_hot_encoding=True):
+    if min_max_scaling:
+        scaler = MinMaxScaler()
+    else:
+        scaler = StandardScaler()
+
+    if one_hot_encoding:
+        categorical_encoder = OneHotEncoder()
+    else:
+        categorical_encoder = OrdinalEncoder()
+
+    label_encoder = LabelEncoder()
+
+    return scaler, categorical_encoder, label_encoder
+
+
+def get_train_test_X_y(resultant_df, label_encoder, target=None, test_size=0.2):
     # prepare X & y (classification)
-    X, y_encoded = get_X_y_encoded(resultant_df, target)
+    X, y_encoded = get_X_y_encoded(resultant_df, label_encoder, target)
 
     # train and test split for X & y
     X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=test_size, random_state=42)
@@ -51,14 +67,13 @@ def get_train_test_X_y(resultant_df, target=None, test_size=0.2):
     return X_train, X_test, y_train, y_test
 
 
-def get_X_y_encoded(resultant_df, target=None):
+def get_X_y_encoded(resultant_df, label_encoder, target=None):
     if target is None:
         target = ['car_park_number']
 
     X = resultant_df.drop(columns=target).to_numpy()
     y = resultant_df[target]
 
-    label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y)
 
     return X, y_encoded
