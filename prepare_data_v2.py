@@ -78,6 +78,9 @@ def prepare_historical_parking_df_v2(use_mean_sampling = False, use_time_differe
 
         historical_parking_df = pd.merge(historical_parking_reduced_df, parking_lot_capacity_df, on='car_park_number', how='inner')
 
+    historical_parking_df = historical_parking_df.sort_values(by=['update_timestamp'])
+    # print(historical_parking_df.groupby('car_park_number')['update_timestamp'].nunique())
+
     # replace timestamp with cyclic values for its features
     historical_parking_df = replace_timestamp_with_cyclic_features(
         historical_parking_df.copy(),
@@ -100,7 +103,6 @@ def prepare_parking_info_df_v2(categorical_encoder, folder_path = None):
            .rename(columns={'car_park_no': 'car_park_number'}))
 
     transformed_categorical_features = categorical_encoder.fit_transform(parking_info_df[categorical_features]).toarray()
-    print(transformed_categorical_features[:5])
 
     encoded_features = pd.DataFrame(transformed_categorical_features, columns=categorical_encoder.get_feature_names_out())
     parking_info_df = parking_info_df.drop(columns=categorical_features).reset_index(drop=True)
