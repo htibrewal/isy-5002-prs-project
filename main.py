@@ -1,9 +1,10 @@
 import multiprocessing as mp
 import os
+from datetime import datetime
 from functools import partial
 from tqdm import tqdm
 from prophet_model import train_single_model
-from setup import fetch_data_from_subfolders
+from setup import fetch_data_from_subfolders, get_time_taken
 
 
 # Iterative Approach
@@ -51,7 +52,10 @@ if __name__ == "__main__":
     print("Car park list")
     print(car_park_no_list)
 
+    start_time = datetime.now()
     results = train_models_parallel(car_park_no_list, historical_5_min_df)
+
+    print(f"Time taken to process all car parking lots = {get_time_taken(start_time)}")
 
     successful = sum(1 for r in results if r and r['status'] == 'success')
     failed = sum(1 for r in results if r and r['status'] == 'error')

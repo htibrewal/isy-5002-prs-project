@@ -1,5 +1,6 @@
 import glob
 import os
+from datetime import datetime
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -38,3 +39,19 @@ def fetch_data_from_subfolders(sampling = SAMPLED_5_MIN_FOLDER):
 
     # concat all the dataframes
     return pd.concat(dfs, ignore_index=True)
+
+
+def get_time_taken(start_time, end_time=None):
+    if end_time is None:
+        end_time = datetime.now()
+
+    time_taken = end_time - start_time
+    seconds = time_taken.total_seconds()
+    return format_time_taken(seconds)
+
+def format_time_taken(seconds):
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    formatted_delta = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+    return formatted_delta
