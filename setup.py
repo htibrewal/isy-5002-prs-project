@@ -2,12 +2,12 @@ import glob
 import os
 import pandas as pd
 from dotenv import load_dotenv
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 
 load_dotenv()
 
 historical_parking_base_folder = os.getenv('PARKING_HISTORY_BASE_FOLDER')
+SAMPLED_5_MIN_FOLDER = '5-Min-Sampled'
+SAMPLED_30_MIN_FOLDER = '30-Min-Sampled'
 
 categorical_features = [
     'car_park_type',
@@ -18,8 +18,13 @@ categorical_features = [
     'car_park_basement'
 ]
 
-def fetch_data_from_subfolders():
-    subfolders = [f.path for f in os.scandir(historical_parking_base_folder) if f.is_dir()]
+# this fetches data from the folders (5-min sampled/30-min sampled)
+def fetch_data_from_subfolders(sampling = SAMPLED_5_MIN_FOLDER):
+    subfolders = [
+        f.path
+        for f in os.scandir(os.path.join(historical_parking_base_folder, sampling))
+        if f.is_dir()
+    ]
 
     # read csv in a dataframe and put all the DataFrames in a list
     dfs = []
@@ -33,31 +38,3 @@ def fetch_data_from_subfolders():
 
     # concat all the dataframes
     return pd.concat(dfs, ignore_index=True)
-
-
-def get_train_test_X_y(resultant_df, target=None, test_size=0.2):
-    # prepare X & y (classification)
-    X, y_encoded = get_X_y_encoded(resultant_df, target)
-
-    # train and test split for X & y
-    X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=test_size, random_state=42)
-
-    print("Shape of X_train = ", X_train.shape)
-    print("Shape of X_test = ", X_test.shape)
-    print("Shape of y_train = ", y_train.shape)
-    print("Shape of y_test = ", y_test.shape)
-
-    return X_train, X_test, y_train, y_test
-
-
-def get_X_y_encoded(resultant_df, target=None):
-    if target is None:
-        target = ['car_park_number']
-
-    X = resultant_df.drop(columns=target).to_numpy()
-    y = resultant_df[target]
-
-    label_encoder = LabelEncoder()
-    y_encoded = label_encoder.fit_transform(y)
-
-    return X, y_encoded
