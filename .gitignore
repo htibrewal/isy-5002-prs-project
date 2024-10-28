@@ -2,9 +2,11 @@
 __pycache__/
 .venv/
 
+
 .env
 *.pkl
 *.csv
 
 playbooks/
-plots
+plots/
+models/
