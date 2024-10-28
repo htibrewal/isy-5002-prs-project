@@ -1,3 +1,4 @@
+import gc
 import os.path
 
 from prophet import Prophet
@@ -13,6 +14,10 @@ def train_single_model(car_park, historical_5_min_df):
 
         if prepared_data.shape[0] <= 1000:
             print(f"Warning: Not enough parking data found for car parking lot {car_park}")
+
+            del prepared_data
+            gc.collect()
+
             return None
 
         print(f"Prepared data shape = {prepared_data.shape}")
@@ -28,6 +33,9 @@ def train_single_model(car_park, historical_5_min_df):
 
         future = model.make_future_dataframe(periods=365, include_history=False)
         forecast = model.predict(future)
+
+        del prepared_data, model, future
+        gc.collect()
 
         return {
             'car_park': car_park,
