@@ -29,15 +29,20 @@ for model_name in all_models:
         car_parks.append(car_park)
 
     with open(model_name, 'r') as file:
-        m = model_from_json(file.read())
+        model = model_from_json(file.read())
 
-        metrics = model_cross_validation(m, parallel="threads")
+        try:
+            metrics = model_cross_validation(model, parallel="threads")
 
-        for metric in ['mse', 'rmse', 'mae']:
-            if metric in metrics:
-                output[metric].append(metrics[metric].mean())
+            for metric in ['mse', 'rmse', 'mae']:
+                if metric in metrics:
+                    output[metric].append(metrics[metric].mean())
 
-        del file, m, metrics
+            del model, metrics
+
+        except ValueError as error:
+            print(f"Error occurred during cross-validation for {car_parks}: {error}")
+
         gc.collect()
 
 
