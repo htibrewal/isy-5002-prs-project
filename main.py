@@ -14,8 +14,15 @@ def train_models_iterative(car_park_list, historical_df):
         result = train_single_model(car_park, historical_df)
         results.append(result)
 
-        if result and result['status'] == 'error':
-            print(f"\nError training model for {result['car_park']}: {result['error_message']}")
+        if result:
+            if result['status'] == 'error':
+                print(f"\nError training model for {result['car_park']}: {result['error_message']}")
+
+            elif result['status'] == 'success':
+                print(f"\nCross-Validation Metrics for {result['car_park']}")
+                print(f"Mean MSE: {result['mse']:.2f}")
+                print(f"Mean RMSE: {result['rmse']:.2f}")
+                print(f"Mean MAE: {result['mae']:.2f}")
 
     return results
 
@@ -53,7 +60,7 @@ if __name__ == "__main__":
     print(car_park_no_list)
 
     start_time = datetime.now()
-    results = train_models_parallel(car_park_no_list, historical_5_min_df)
+    results = train_models_iterative(car_park_no_list, historical_5_min_df)
 
     print(f"Time taken to process all car parking lots = {get_time_taken(start_time)}")
 
