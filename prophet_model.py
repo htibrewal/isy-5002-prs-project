@@ -2,6 +2,7 @@ import gc
 import os.path
 
 from prophet import Prophet
+from prophet.diagnostics import cross_validation, performance_metrics
 from prophet.serialize import model_to_json
 from prepare_data_prophet import prepare_data_prophet
 from prepare_holidays import sg_holidays
@@ -26,10 +27,11 @@ def train_single_model(car_park, historical_5_min_df):
         model = Prophet(holidays=sg_holidays)
         model.fit(prepared_data)
 
+        metrics = model_cross_validation(model)
+
         model_name = f"model_{car_park}.json"
         with open(os.path.join("models", model_name), 'w') as f:
             f.write(model_to_json(model))
-
 
         future = model.make_future_dataframe(periods=365, include_history=False)
         forecast = model.predict(future)
@@ -37,11 +39,17 @@ def train_single_model(car_park, historical_5_min_df):
         del prepared_data, model, future
         gc.collect()
 
-        return {
+        output = {
             'car_park': car_park,
             'status': 'success',
-            'forecast': forecast
+            'forecast': forecast,
         }
+
+        for metric in ['mse', 'rmse', 'mae']:
+            if metric in metrics:
+                output[metric] = metrics[metric].mean()
+
+        return output
 
     except Exception as e:
         return {
@@ -49,3 +57,12 @@ def train_single_model(car_park, historical_5_min_df):
             'status': 'error',
             'error_message': str(e)
         }
+
+
+def model_cross_validation(model, parallel='processes'):
+    df_cv = cross_validation(model, initial='240 days', horizon='30 days', parallel=parallel)
+    df_metrics = performance_metrics(df_cv, metrics=['mse', 'rmse', 'mae'])
+
+    del df_cv
+
+    return df_metrics
