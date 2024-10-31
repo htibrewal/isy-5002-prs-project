@@ -5,6 +5,7 @@ __pycache__/
 .env
 *.pkl
 *.csv
+models/knn_model.pkl
 
 playbooks/
 plots/
