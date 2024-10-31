@@ -44,8 +44,12 @@ def get_datetime_element():
         label="Select Preferred Datetime"
     )
 
-def get_output_element():
-    return gr.Textbox(label="Best Parking Location")
+def get_output_elements():
+    output_text_element = gr.Textbox(label="Best Parking Location", value="No suitable car park found", visible=False, elem_id="output_text")
+    output_df_element = gr.DataFrame(label='Top Recommended Parking Locations', visible=True, elem_id="output_table")
+    output_map_element = gr.HTML(label="Google Maps", visible=False, elem_id="output_map")
+
+    return [output_text_element, output_df_element, output_map_element]
 
 
 def calculate_distance(df, x, y):
