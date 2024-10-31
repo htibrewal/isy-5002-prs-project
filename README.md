@@ -7,6 +7,10 @@
 - Sanglap Dasgupta ([@AapseMatlb](https://www.github.com/AapseMatlb))
 - Yashashwani Kashyap ([@SanglapD](https://www.github.com/SanglapD))
 
+
+## Github Project Link
+https://github.com/htibrewal/isy-5001-irs-project
+
 ## User Guide
 
 ### To run the system in your machine:
