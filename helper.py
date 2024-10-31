@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from constants import DATA_PATH, ANY_VALUE
+from geospatial_features import convert_xy_to_lat_long
 
 
 def load_singapore_locations():
@@ -49,3 +50,21 @@ def get_output_element():
 
 def calculate_distance(df, x, y):
     return np.sqrt((df['x_coord'] - x) ** 2 + (df['y_coord'] - y) ** 2)
+
+
+def load_parking_data():
+    parking_info_data = pd.read_csv(os.path.join(DATA_PATH, 'HDBCarparkInformation.csv'))
+    parking_info_data['free_parking'] = parking_info_data['free_parking'].apply(lambda x: 'NO' if x == 'NO' else 'YES')
+    return parking_info_data
+
+
+def get_output_dataframe(car_park_list):
+    parking_data = load_parking_data()
+    top_parking_data: pd.DataFrame = parking_data[parking_data['car_park_no'].isin(car_park_list)]
+
+    top_parking_data = top_parking_data[['car_park_no', 'address', 'x_coord', 'y_coord']]
+    top_parking_data[['latitude', 'longitude']] = top_parking_data.apply(
+        lambda row: convert_xy_to_lat_long(row['x_coord'], row['y_coord']), axis=1, result_type='expand'
+    )
+
+    return top_parking_data.drop(columns=['x_coord', 'y_coord'])
