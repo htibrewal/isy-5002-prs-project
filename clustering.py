@@ -1,10 +1,9 @@
-import os
 import numpy as np
 import pandas as pd
 from scipy.cluster.hierarchy import linkage, fcluster
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
-from constants import DATA_PATH, ANY_VALUE, CAR_PARK_NO
-
+from constants import ANY_VALUE, CAR_PARK_NO
+from helper import load_parking_data
 
 numerical_cols = ['x_coord', 'y_coord']
 categorical_cols = ['car_park_type', 'free_parking', 'night_parking', 'car_park_basement']
@@ -24,9 +23,10 @@ def perform_hierarchical_clustering(x, y, filters):
     clustering_columns = numerical_cols + categorical_cols
     linked = linkage(np.array(fitted_data[clustering_columns]), method='ward')
 
-    max_distance = 3
+    max_distance = 1.5
     cluster_labels = fcluster(linked, max_distance, criterion='distance')
     fitted_data['cluster'] = cluster_labels
+    print(f"No of unique cluster labels = {fitted_data['cluster'].nunique()}")
 
     # Identify the user's cluster by taking the cluster value of last entry
     user_cluster = fitted_data.iloc[-1]['cluster']
@@ -69,12 +69,6 @@ def prepare_hierarchical_data(user_df, scaler):
     concatenated_data[categorical_cols] = encoder.fit_transform(concatenated_data[categorical_cols])
 
     return concatenated_data
-
-
-def load_parking_data():
-    parking_info_data = pd.read_csv(os.path.join(DATA_PATH, 'HDBCarparkInformation.csv'))
-    parking_info_data['free_parking'] = parking_info_data['free_parking'].apply(lambda x: 'NO' if x == 'NO' else 'YES')
-    return parking_info_data
 
 
 def create_user_df(x, y, filters):
